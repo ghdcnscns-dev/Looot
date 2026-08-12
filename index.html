@@ -5,26 +5,132 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>바이킹 야들 점수 계산기</title>
     <style>
-        :root { --primary: #4a6741; --accent: #d4af37; --bg: #fdfbf7; }
-        body { font-family: sans-serif; background: var(--bg); padding: 10px; margin: 0; }
+        :root {
+            --bg: #fdfbf7;
+            --card-bg: #ffffff;
+            --text: #2c2c2c;
+            --primary: #4a6741;
+            --primary-hover: #3b5334;
+            --accent: #d4af37;
+            --border: #ddd;
+            --input-bg: #fff;
+        }
+
+        [data-theme="viking"] {
+            --bg: #2b231c;
+            --card-bg: #3e3226;
+            --text: #f4ebd0;
+            --primary: #7a3b2e;
+            --primary-hover: #612e23;
+            --accent: #e6c567;
+            --border: #5c4a38;
+            --input-bg: #2b231c;
+        }
+
+        [data-theme="dark"] {
+            --bg: #121212;
+            --card-bg: #1e1e1e;
+            --text: #e0e0e0;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --accent: #fbbf24;
+            --border: #333333;
+            --input-bg: #2a2a2a;
+        }
+
+        body { 
+            font-family: sans-serif; 
+            background: var(--bg); 
+            color: var(--text);
+            padding: 10px; 
+            margin: 0; 
+            transition: background 0.3s, color 0.3s;
+        }
         .container { max-width: 600px; margin: auto; }
-        .player-card { background: white; border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .input-group { display: flex; align-items: center; justify-content: space-between; margin: 5px 0; font-size: 0.9em; }
+        
+        .theme-selector {
+            display: flex;
+            justify-content: flex-end;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        .theme-btn {
+            background: var(--card-bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 5px 10px;
+            font-size: 0.85em;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .theme-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .player-card { 
+            background: var(--card-bg); 
+            border: 1px solid var(--border); 
+            padding: 15px; 
+            margin-bottom: 15px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+            transition: background 0.3s, border 0.3s;
+        }
+        .input-group { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            margin: 5px 0; 
+            font-size: 0.9em; 
+        }
+        input[type="number"], input[type="text"] { 
+            background: var(--input-bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 4px;
+            border-radius: 4px;
+        }
         input[type="number"] { width: 50px; }
-        .total-score { font-weight: bold; color: var(--primary); font-size: 1.3em; margin-top: 10px; text-align: right; }
+        .total-score { 
+            font-weight: bold; 
+            color: var(--accent); 
+            font-size: 1.3em; 
+            margin-top: 10px; 
+            text-align: right; 
+        }
         button { cursor: pointer; padding: 8px 12px; background: var(--primary); color: white; border: none; border-radius: 4px; }
+        button:hover { background: var(--primary-hover); }
         .remove-btn { background: #b22222; margin-left: 10px; }
-        h1 { text-align: center; color: var(--primary); }
+        .remove-btn:hover { background: #8b0000; }
+        h1 { text-align: center; color: var(--accent); }
     </style>
 </head>
 <body>
 <div class="container">
+    <div class="theme-selector">
+        <button class="theme-btn active" onclick="setTheme('light', this)">기본</button>
+        <button class="theme-btn" onclick="setTheme('viking', this)">바이킹(양피지)</button>
+        <button class="theme-btn" onclick="setTheme('dark', this)">다크모드</button>
+    </div>
+
     <h1>바이킹 점수 계산기</h1>
     <div id="playerList"></div>
     <button onclick="addPlayer()" style="width:100%; padding:15px; font-size:1.1em; margin-top:10px;">+ 플레이어 추가</button>
 </div>
 
 <script>
+    function setTheme(theme, btn) {
+        if(theme === 'light') {
+            document.documentElement.removeAttribute('data-theme');
+        } else {
+            document.documentElement.setAttribute('data-theme', theme);
+        }
+        document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
     let players = [{ id: Date.now(), name: "플레이어 1", scores: { house:0, houseB:0, watch:0, watchB:0, castle:0, castleB:0, wood:0, woodB:0, sheep:0, sheepB:0, gold:0, goldB:0, port:false, abbey:false, jarl:false, trophy:0, longship:0 } }];
 
     function addPlayer() {
