@@ -2,392 +2,507 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>바이킹 야들 - 승점 계산기</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>루우트 승점 계산기</title>
     <style>
         :root {
-            --bg: #f5f2eb;
-            --card-bg: #ffffff;
-            --text: #2c251e;
-            --primary: #4a5d4e;
-            --primary-hover: #3b4a3e;
-            --accent: #8b5a2b;
-            --gold: #b8860b;
-            --border: #d4c5b9;
-            --input-bg: #faf8f5;
-            --header-bg: #f0eae1;
-        }
-
-        [data-theme="viking"] {
-            --bg: #1e1915;
-            --card-bg: #2d241d;
+            --bg: #1c1714;
+            --card-bg: #28211b;
+            --card-border: #44372e;
             --text: #f3ebd8;
-            --primary: #6b3e2e;
-            --primary-hover: #543023;
-            --accent: #d4af37;
-            --gold: #e6c567;
-            --border: #4a3b2c;
-            --input-bg: #1e1915;
-            --header-bg: #382c23;
-        }
-
-        [data-theme="dark"] {
-            --bg: #121212;
-            --card-bg: #1e1e1e;
-            --text: #e0e0e0;
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --accent: #fbbf24;
-            --gold: #f59e0b;
-            --border: #333333;
-            --input-bg: #2a2a2a;
-            --header-bg: #252525;
+            --primary: #7a3b2e;
+            --accent: #e6c567;
+            --accent-bg: #332921;
+            --input-bg: #1c1714;
+            --input-border: #524337;
+            --danger: #d9534f;
         }
 
         body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; 
             background: var(--bg); 
             color: var(--text);
-            padding: 15px; 
+            padding: 10px; 
             margin: 0; 
-            transition: background 0.3s, color 0.3s;
+            -webkit-text-size-adjust: 100%;
         }
-        .container { max-width: 650px; margin: auto; }
+        .container { max-width: 700px; margin: auto; padding-bottom: 80px; }
         
         .header-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
+            background: var(--card-bg);
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
         }
 
-        h1 { margin: 0; color: var(--gold); font-size: 1.6em; text-align: center; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
+        h1 { margin: 0; color: var(--accent); font-size: 1.2em; font-weight: 700; }
 
-        .theme-selector {
+        /* 플레이어 관리 패널 */
+        .player-manage-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .player-manage-header {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--accent);
+            font-size: 0.95em;
+        }
+        .player-tags {
             display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+        }
+        .player-tag {
+            display: flex;
+            align-items: center;
+            background: var(--accent-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 4px 8px 4px 10px;
             gap: 4px;
         }
-        .theme-btn {
-            background: var(--card-bg);
+        .player-tag input {
+            border: none;
+            background: transparent;
             color: var(--text);
-            border: 1px solid var(--border);
-            padding: 6px 10px;
-            font-size: 0.8em;
-            border-radius: 4px;
-            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9em;
+            width: 70px;
         }
-        .theme-btn.active {
-            background: var(--accent);
+        .tag-remove {
+            background: var(--danger);
             color: white;
-            border-color: var(--accent);
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.8em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .add-player-tag-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.85em;
         }
 
-        .player-card { 
-            background: var(--card-bg); 
-            border: 2px solid var(--border); 
-            padding: 20px; 
-            margin-bottom: 20px; 
-            border-radius: 12px; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15); 
-            transition: background 0.3s, border 0.3s;
+        /* 그룹별 카드 섹션 */
+        .group-section {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
-        
-        .player-header {
+        .group-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
-            border-bottom: 2px solid var(--border);
-            padding-bottom: 10px;
-        }
-
-        .player-name-input {
-            font-size: 1.2em;
-            font-weight: bold;
-            width: 60%;
-            background: var(--input-bg);
-            color: var(--text);
-            border: 1px solid var(--border);
-            padding: 6px 10px;
-            border-radius: 6px;
-        }
-
-        /* 그룹별 점수 테이블 디자인 */
-        .score-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 15px;
-            font-size: 0.9em;
-        }
-
-        .score-table th, .score-table td {
-            border: 1px solid var(--border);
-            padding: 8px;
-            text-align: center;
-        }
-
-        .score-table th {
-            background-color: var(--header-bg);
-            color: var(--gold);
-            font-weight: 600;
-        }
-
-        .score-table td input[type="number"] {
-            width: 45px;
-            background: var(--input-bg);
-            color: var(--text);
-            border: 1px solid var(--border);
-            padding: 4px;
-            border-radius: 4px;
-            text-align: center;
-            font-weight: bold;
-        }
-
-        .sub-section {
-            background: var(--header-bg);
-            padding: 10px;
-            border-radius: 6px;
+            border-bottom: 2px dashed var(--card-border);
+            padding-bottom: 8px;
             margin-bottom: 10px;
-            font-size: 0.9em;
         }
-
-        .sub-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 6px 0;
-        }
-
-        .sub-row label {
+        .group-title-area {
             display: flex;
             align-items: center;
             gap: 6px;
-            cursor: pointer;
+        }
+        .group-name {
+            font-size: 1.05em;
+            font-weight: bold;
+            color: var(--accent);
+        }
+        .group-base-desc {
+            font-size: 0.75em;
+            background: var(--accent-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid var(--card-border);
+            opacity: 0.85;
         }
 
-        .total-box {
+        /* 그룹 내 플레이어 입력 행 */
+        .group-player-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: var(--header-bg);
-            padding: 12px 15px;
+            background: var(--accent-bg);
+            border: 1px solid var(--card-border);
             border-radius: 8px;
-            margin-top: 15px;
-            border-left: 5px solid var(--gold);
+            padding: 8px 10px;
+            margin-bottom: 6px;
+        }
+        .gp-name {
+            font-weight: bold;
+            font-size: 0.9em;
+            width: 75px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .gp-inputs {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .input-box-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.7em;
+            gap: 2px;
+            opacity: 0.9;
+        }
+        input[type="number"] {
+            width: 42px;
+            height: 36px; /* 모바일 터치 영역 확대 */
+            background: var(--input-bg);
+            color: var(--text);
+            border: 1px solid var(--input-border);
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1em;
+            -webkit-appearance: none;
+        }
+        .gp-result {
+            font-weight: bold;
+            font-size: 0.95em;
+            min-width: 45px;
+            text-align: right;
+            color: var(--text);
         }
 
-        .total-score-text { 
-            font-weight: bold; 
-            color: var(--gold); 
-            font-size: 1.4em; 
+        /* 기타 특수 부지 및 트로피/롱쉽 섹션 */
+        .special-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .special-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .special-card-title {
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 10px;
+            font-size: 0.95em;
+            border-bottom: 2px dashed var(--card-border);
+            padding-bottom: 6px;
+        }
+        .special-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.85em;
+        }
+        .special-row:last-child { margin-bottom: 0; }
+
+        /* 체크박스 터치 영역 확대용 */
+        .special-row label {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 4px 0;
+            cursor: pointer;
+        }
+        .special-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
         }
 
-        button { cursor: pointer; padding: 10px 15px; background: var(--accent); color: white; border: none; border-radius: 6px; font-weight: bold; }
-        button:hover { opacity: 0.9; }
-        .remove-btn { background: #a93226; padding: 6px 10px; font-size: 0.85em; }
-        .remove-btn:hover { background: #922b21; }
-        
-        .add-player-btn {
-            width: 100%;
+        /* 실시간 총합 등수 보드 */
+        .scoreboard-card {
+            background: var(--card-bg);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
             padding: 15px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+            position: sticky;
+            bottom: 10px;
+            z-index: 10;
+        }
+        .scoreboard-title {
             font-size: 1.1em;
-            background: var(--primary);
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            font-weight: 800;
+            color: var(--accent);
+            margin-bottom: 10px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+        }
+        .rank-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--accent-bg);
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            border: 1px solid var(--card-border);
+            transition: all 0.3s ease;
+        }
+        .rank-row:last-child { margin-bottom: 0; }
+        .rank-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+            font-size: 0.95em;
+        }
+        .rank-score {
+            font-weight: 800;
+            font-size: 1.1em;
+            color: var(--accent);
         }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="header-bar">
-        <h1>⚔️ 바이킹 야들 점수 계산기</h1>
-        <div class="theme-selector">
-            <button class="theme-btn active" onclick="setTheme('light', this)">기본</button>
-            <button class="theme-btn" onclick="setTheme('viking', this)">양피지</button>
-            <button class="theme-btn" onclick="setTheme('dark', this)">다크</button>
+        <h1>🛡️ 루우트 점수 계산기</h1>
+    </div>
+
+    <!-- 플레이어 관리 패널 -->
+    <div class="player-manage-panel">
+        <div class="player-manage-header">👥 게임 참여 플레이어 설정</div>
+        <div class="player-tags" id="playerTagsContainer"></div>
+    </div>
+
+    <!-- 그룹별 입력 섹션 렌더링 영역 -->
+    <div id="groupsContainer"></div>
+
+    <!-- 부가 점수 (완성 부지, 트로피, 미완성 롱쉽) -->
+    <div class="special-grid">
+        <div class="special-card">
+            <div class="special-card-title">🏛️ 완성 부지 보유 현황</div>
+            <div id="portContainer"></div>
+        </div>
+        <div class="special-card">
+            <div class="special-card-title">🏆 트로피 & ❌ 미완성 롱쉽</div>
+            <div id="bonusContainer"></div>
         </div>
     </div>
 
-    <div id="playerList"></div>
-    <button class="add-player-btn" onclick="addPlayer()">+ 플레이어 추가</button>
+    <!-- 실시간 총합 등수 보드 -->
+    <div class="scoreboard-card">
+        <div class="scoreboard-title">⚡ 실시간 총합 등수 순위표</div>
+        <div id="scoreboardContainer"></div>
+    </div>
 </div>
 
 <script>
-    function setTheme(theme, btn) {
-        if(theme === 'light') {
-            document.documentElement.removeAttribute('data-theme');
-        } else {
-            document.documentElement.setAttribute('data-theme', theme);
-        }
-        document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-    }
+    let players = [
+        { id: 1, name: "플레이어 1" },
+        { id: 2, name: "플레이어 2" }
+    ];
 
-    let players = [{ 
-        id: Date.now(), 
-        name: "플레이어 1", 
-        scores: { house:0, houseB:0, watch:0, watchB:0, castle:0, castleB:0, wood:0, woodB:0, sheep:0, sheepB:0, gold:0, goldB:0, port:false, abbey:false, jarl:false, trophy:0, longship:0 } 
-    }];
+    let scores = {
+        1: { house:0, houseB:0, watch:0, watchB:0, castle:0, castleB:0, wood:0, woodB:0, sheep:0, sheepB:0, gold:0, goldB:0, port:false, abbey:false, jarl:false, trophy:0, longship:0 },
+        2: { house:0, houseB:0, watch:0, watchB:0, castle:0, castleB:0, wood:0, woodB:0, sheep:0, sheepB:0, gold:0, goldB:0, port:false, abbey:false, jarl:false, trophy:0, longship:0 }
+    };
+
+    const groupMeta = [
+        { key: 'house', name: '🏠 집 그룹', base: 1 },
+        { key: 'watch', name: '🗼 망루 그룹', base: 2 },
+        { key: 'castle', name: '🏰 성 그룹', base: 4 },
+        { key: 'wood', name: '🌲 나무 그룹', base: 1 },
+        { key: 'sheep', name: '🐑 양 그룹', base: 1 },
+        { key: 'gold', name: '💰 금 그룹', base: 2 }
+    ];
 
     function addPlayer() {
-        players.push({ 
-            id: Date.now(), 
-            name: "플레이어 " + (players.length + 1), 
-            scores: { house:0, houseB:0, watch:0, watchB:0, castle:0, castleB:0, wood:0, woodB:0, sheep:0, sheepB:0, gold:0, goldB:0, port:false, abbey:false, jarl:false, trophy:0, longship:0 } 
-        });
+        let newId = Date.now();
+        let newName = "플레이어 " + (players.length + 1);
+        players.push({ id: newId, name: newName });
+        scores[newId] = { house:0, houseB:0, watch:0, watchB:0, castle:0, castleB:0, wood:0, woodB:0, sheep:0, sheepB:0, gold:0, goldB:0, port:false, abbey:false, jarl:false, trophy:0, longship:0 };
         render();
     }
 
     function removePlayer(id) {
+        if(players.length <= 1) {
+            alert("최소 1명의 플레이어가 필요합니다.");
+            return;
+        }
         players = players.filter(p => p.id !== id);
+        delete scores[id];
         render();
     }
 
-    function updateScore(pId, field, value) {
-        let p = players.find(p => p.id === pId);
-        p.scores[field] = value;
-        render();
+    function updatePlayerName(id, val) {
+        let p = players.find(x => x.id === id);
+        if(p) p.name = val;
+        renderScoreboardOnly();
     }
 
-    function calculate(p) {
-        let s = p.scores;
+    function updateVal(pId, field, val) {
+        if(scores[pId]) {
+            scores[pId][field] = val;
+            render();
+        }
+    }
+
+    function calculateTotal(pId) {
+        let s = scores[pId];
+        if(!s) return 0;
         let total = 0;
-        // 그룹별 점수: (기본점수 + 롱쉽보너스) × 타일개수
-        let houseScore = (1 + s.houseB) * s.house;
-        let watchScore = (2 + s.watchB) * s.watch;
-        let castleScore = (4 + s.castleB) * s.castle;
-        let woodScore = (1 + s.woodB) * s.wood;
-        let sheepScore = (1 + s.sheepB) * s.sheep;
-        let goldScore = (2 + s.goldB) * s.gold;
-
-        total += houseScore + watchScore + castleScore + woodScore + sheepScore + goldScore;
+        total += (1 + s.houseB) * s.house;
+        total += (2 + s.watchB) * s.watch;
+        total += (4 + s.castleB) * s.castle;
+        total += (1 + s.woodB) * s.wood;
+        total += (1 + s.sheepB) * s.sheep;
+        total += (2 + s.goldB) * s.gold;
         
-        // 완성 부지 점수
         total += s.port ? 5 : 0;
         total += s.abbey ? 7 : 0;
         total += s.jarl ? 9 : 0;
-        
-        // 트로피 및 미완성 롱쉽 감점
         total += s.trophy;
         total -= (s.longship * 5);
         return total;
     }
 
-    // 그룹별 획득 점수 계산 헬퍼
-    function getGroupSubtotal(s) {
-        return {
-            house: (1 + s.houseB) * s.house,
-            watch: (2 + s.watchB) * s.watch,
-            castle: (4 + s.castleB) * s.castle,
-            wood: (1 + s.woodB) * s.wood,
-            sheep: (1 + s.sheepB) * s.sheep,
-            gold: (2 + s.goldB) * s.gold
-        };
+    function render() {
+        renderPlayerTags();
+        renderGroups();
+        renderSpecial();
+        renderScoreboard();
     }
 
-    function render() {
-        players.sort((a,b) => calculate(b) - calculate(a));
+    function renderScoreboardOnly() {
+        renderPlayerTags();
+        renderScoreboard();
+    }
+
+    function renderPlayerTags() {
         let html = "";
-        
-        players.forEach((p, index) => {
-            let sub = getGroupSubtotal(p.scores);
-            let rankBadge = index === 0 ? "👑 1위" : `${index + 1}위`;
+        players.forEach(p => {
+            html += `<div class="player-tag">
+                <input type="text" value="${p.name}" onchange="updatePlayerName(${p.id}, this.value)">
+                <button class="tag-remove" onclick="removePlayer(${p.id})">×</button>
+            </div>`;
+        });
+        html += `<button class="add-player-tag-btn" onclick="addPlayer()">+ 추가</button>`;
+        document.getElementById("playerTagsContainer").innerHTML = html;
+    }
 
-            html += `<div class="player-card">
-                <div class="player-header">
-                    <input type="text" class="player-name-input" value="${p.name}" onchange="p.name=this.value">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <span style="font-weight:bold; color:var(--gold);">${rankBadge}</span>
-                        <button class="remove-btn" onclick="removePlayer(${p.id})">삭제</button>
+    function renderGroups() {
+        let html = "";
+        groupMeta.forEach(g => {
+            html += `<div class="group-section">
+                <div class="group-header">
+                    <div class="group-title-area">
+                        <span class="group-name">${g.name}</span>
+                        <span class="group-base-desc">기본 ${g.base}점</span>
                     </div>
                 </div>
+                <div class="group-rows">`;
+            
+            players.forEach(p => {
+                let s = scores[p.id];
+                let bonus = s[g.key + 'B'];
+                let count = s[g.key];
+                let subTotal = (g.base + bonus) * count;
 
-                <!-- 그룹별 점수판 테이블 -->
-                <table class="score-table">
-                    <thead>
-                        <tr>
-                            <th>그룹명</th>
-                            <th>기본</th>
-                            <th>롱쉽보너스</th>
-                            <th>타일개수</th>
-                            <th>그룹 획득 점수</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>🏡 집</td>
-                            <td>1점</td>
-                            <td>+<input type="number" value="${p.scores.houseB}" onchange="updateScore(${p.id},'houseB',+this.value)"></td>
-                            <td><input type="number" value="${p.scores.house}" onchange="updateScore(${p.id},'house',+this.value)">개</td>
-                            <td><b>${sub.house}점</b></td>
-                        </tr>
-                        <tr>
-                            <td>🗼 망루</td>
-                            <td>2점</td>
-                            <td>+<input type="number" value="${p.scores.watchB}" onchange="updateScore(${p.id},'watchB',+this.value)"></td>
-                            <td><input type="number" value="${p.scores.watch}" onchange="updateScore(${p.id},'watch',+this.value)">개</td>
-                            <td><b>${sub.watch}점</b></td>
-                        </tr>
-                        <tr>
-                            <td>🏰 성</td>
-                            <td>4점</td>
-                            <td>+<input type="number" value="${p.scores.castleB}" onchange="updateScore(${p.id},'castleB',+this.value)"></td>
-                            <td><input type="number" value="${p.scores.castle}" onchange="updateScore(${p.id},'castle',+this.value)">개</td>
-                            <td><b>${sub.castle}점</b></td>
-                        </tr>
-                        <tr>
-                            <td>🌲 나무</td>
-                            <td>1점</td>
-                            <td>+<input type="number" value="${p.scores.woodB}" onchange="updateScore(${p.id},'woodB',+this.value)"></td>
-                            <td><input type="number" value="${p.scores.wood}" onchange="updateScore(${p.id},'wood',+this.value)">개</td>
-                            <td><b>${sub.wood}점</b></td>
-                        </tr>
-                        <tr>
-                            <td>🐑 양</td>
-                            <td>1점</td>
-                            <td>+<input type="number" value="${p.scores.sheepB}" onchange="updateScore(${p.id},'sheepB',+this.value)"></td>
-                            <td><input type="number" value="${p.scores.sheep}" onchange="updateScore(${p.id},'sheep',+this.value)">개</td>
-                            <td><b>${sub.sheep}점</b></td>
-                        </tr>
-                        <tr>
-                            <td>💰 금</td>
-                            <td>2점</td>
-                            <td>+<input type="number" value="${p.scores.goldB}" onchange="updateScore(${p.id},'goldB',+this.value)"></td>
-                            <td><input type="number" value="${p.scores.gold}" onchange="updateScore(${p.id},'gold',+this.value)">개</td>
-                            <td><b>${sub.gold}점</b></td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <!-- 부가 점수 영역 -->
-                <div class="sub-section">
-                    <div class="sub-row">
-                        <span>🏛️ 완성 부지 (체크 시 적용)</span>
-                        <div style="display:flex; gap:10px;">
-                            <label><input type="checkbox" ${p.scores.port?'checked':''} onchange="updateScore(${p.id},'port',this.checked)"> 항구(+5)</label>
-                            <label><input type="checkbox" ${p.scores.abbey?'checked':''} onchange="updateScore(${p.id},'abbey',this.checked)"> 예배소(+7)</label>
-                            <label><input type="checkbox" ${p.scores.jarl?'checked':''} onchange="updateScore(${p.id},'jarl',this.checked)"> 야를(+9)</label>
+                html += `<div class="group-player-row">
+                    <span class="gp-name" title="${p.name}">${p.name}</span>
+                    <div class="gp-inputs">
+                        <div class="input-box-wrapper">
+                            <span>롱쉽보너스</span>
+                            <input type="number" pattern="[0-9]*" value="${bonus}" onchange="updateVal(${p.id}, '${g.key}B', +this.value)">
                         </div>
+                        <div style="opacity:0.4;">×</div>
+                        <div class="input-box-wrapper">
+                            <span>타일개수</span>
+                            <input type="number" pattern="[0-9]*" value="${count}" onchange="updateVal(${p.id}, '${g.key}', +this.value)">
+                        </div>
+                        <div style="opacity:0.4;">=</div>
+                        <div class="gp-result">${subTotal}점</div>
                     </div>
-                    <div class="sub-row">
-                        <span>🏆 트로피 타일 총점</span>
-                        <input type="number" value="${p.scores.trophy}" onchange="updateScore(${p.id},'trophy',+this.value)" style="width:60px; text-align:center; font-weight:bold;">
-                    </div>
-                    <div class="sub-row">
-                        <span>❌ 미완성 롱쉽 감점 (개당 -5점)</span>
-                        <input type="number" value="${p.scores.longship}" onchange="updateScore(${p.id},'longship',+this.value)" style="width:60px; text-align:center; font-weight:bold; color:#a93226;">
-                    </div>
-                </div>
+                </div>`;
+            });
 
-                <!-- 총점 박스 -->
-                <div class="total-box">
-                    <span>최종 승점 합산</span>
-                    <span class="total-score-text">${calculate(p)} 점</span>
+            html += `</div></div>`;
+        });
+        document.getElementById("groupsContainer").innerHTML = html;
+    }
+
+    function renderSpecial() {
+        let portHtml = "";
+        players.forEach(p => {
+            let s = scores[p.id];
+            portHtml += `<div class="special-row">
+                <span style="font-weight:bold; width:75px;" title="${p.name}">${p.name}</span>
+                <div style="display:flex; gap:6px; font-size:0.8em;">
+                    <label><input type="checkbox" ${s.port?'checked':''} onchange="updateVal(${p.id}, 'port', this.checked)"> 항구(+5)</label>
+                    <label><input type="checkbox" ${s.abbey?'checked':''} onchange="updateVal(${p.id}, 'abbey', this.checked)"> 예배소(+7)</label>
+                    <label><input type="checkbox" ${s.jarl?'checked':''} onchange="updateVal(${p.id}, 'jarl', this.checked)"> 야를(+9)</label>
                 </div>
             </div>`;
         });
-        document.getElementById("playerList").innerHTML = html;
+        document.getElementById("portContainer").innerHTML = portHtml;
+
+        let bonusHtml = "";
+        players.forEach(p => {
+            let s = scores[p.id];
+            bonusHtml += `<div class="special-row">
+                <span style="font-weight:bold; width:75px;" title="${p.name}">${p.name}</span>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <div class="input-box-wrapper"><span>트로피 총점</span><input type="number" pattern="[0-9]*" value="${s.trophy}" onchange="updateVal(${p.id}, 'trophy', +this.value)"></div>
+                    <div class="input-box-wrapper"><span style="color:var(--danger)">미완성롱쉽(-5)</span><input type="number" pattern="[0-9]*" value="${s.longship}" onchange="updateVal(${p.id}, 'longship', +this.value)" style="color:var(--danger)"></div>
+                </div>
+            </div>`;
+        });
+        document.getElementById("bonusContainer").innerHTML = bonusHtml;
     }
+
+    function renderScoreboard() {
+        let ranked = players.map(p => ({
+            ...p,
+            total: calculateTotal(p.id)
+        })).sort((a, b) => b.total - a.total);
+
+        let html = "";
+        ranked.forEach((p, idx) => {
+            let badge = idx === 0 ? "👑 1위" : `${idx + 1}위`;
+            html += `<div class="rank-row">
+                <div class="rank-info">
+                    <span style="color:var(--accent); min-width:35px;">${badge}</span>
+                    <span>${p.name}</span>
+                </div>
+                <div class="rank-score">${p.total} 점</div>
+            </div>`;
+        });
+        document.getElementById("scoreboardContainer").innerHTML = html;
+    }
+
     render();
 </script>
 </body>
