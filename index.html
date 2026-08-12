@@ -94,7 +94,22 @@
             align-items: center;
             justify-content: center;
         }
-        .add-player-tag-btn {
+        .add-player-form {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .add-player-input {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 20px;
+            padding: 5px 12px;
+            color: var(--text);
+            font-size: 0.9em;
+            width: 90px;
+            outline: none;
+        }
+        .add-player-btn {
             background: var(--primary);
             color: white;
             border: none;
@@ -241,27 +256,51 @@
             accent-color: var(--accent);
         }
 
-        /* 실시간 총합 등수 보드 */
+        /* 실시간 총합 등수 보드 (토글 적용) */
         .scoreboard-card {
             background: var(--card-bg);
             border: 2px solid var(--accent);
             border-radius: 12px;
-            padding: 15px;
+            padding: 12px 15px;
             box-shadow: 0 6px 15px rgba(0,0,0,0.3);
             position: sticky;
             bottom: 10px;
             z-index: 10;
         }
+        .scoreboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
         .scoreboard-title {
-            font-size: 1.1em;
+            font-size: 1.05em;
             font-weight: 800;
             color: var(--accent);
-            margin-bottom: 10px;
-            text-align: center;
+            margin: 0;
             display: flex;
-            justify-content: center;
             align-items: center;
             gap: 6px;
+        }
+        .toggle-btn-text {
+            font-size: 0.8em;
+            background: var(--accent-bg);
+            border: 1px solid var(--card-border);
+            padding: 3px 8px;
+            border-radius: 6px;
+            color: var(--accent);
+            font-weight: bold;
+        }
+        .scoreboard-body {
+            margin-top: 10px;
+            transition: max-height 0.3s ease;
+            max-height: 500px;
+            overflow: hidden;
+        }
+        .scoreboard-body.collapsed {
+            max-height: 0;
+            margin-top: 0;
         }
         .rank-row {
             display: flex;
@@ -316,23 +355,21 @@
         </div>
     </div>
 
-    <!-- 실시간 총합 등수 보드 -->
+    <!-- 실시간 총합 등수 보드 (토글 기능 포함) -->
     <div class="scoreboard-card">
-        <div class="scoreboard-title">⚡ 실시간 총합 등수 순위표</div>
-        <div id="scoreboardContainer"></div>
+        <div class="scoreboard-header" onclick="toggleScoreboard()">
+            <div class="scoreboard-title">⚡ 실시간 총합 등수 순위표</div>
+            <div class="toggle-btn-text" id="toggleBtnText">접기 ▲</div>
+        </div>
+        <div class="scoreboard-body" id="scoreboardBody">
+            <div id="scoreboardContainer" style="margin-top: 6px;"></div>
+        </div>
     </div>
 </div>
 
 <script>
-    let players = [
-        { id: 1, name: "플레이어 1" },
-        { id: 2, name: "플레이어 2" }
-    ];
-
-    let scores = {
-        1: { house:0, houseB:0, watch:0, watchB:0, castle:0, castleB:0, wood:0, woodB:0, sheep:0, sheepB:0, gold:0, goldB:0, port:false, abbey:false, jarl:false, trophy:0, longship:0 },
-        2: { house:0, houseB:0, watch:0, watchB:0, castle:0, castleB:0, wood:0, woodB:0, sheep:0, sheepB:0, gold:0, goldB:0, port:false, abbey:false, jarl:false, trophy:0, longship:0 }
-    };
+    let players = [];
+    let scores = {};
 
     const groupMeta = [
         { key: 'house', name: '🏠 집 그룹', base: 1 },
@@ -343,53 +380,60 @@
         { key: 'gold', name: '💰 금 그룹', base: 2 }
     ];
 
+    function toggleScoreboard() {
+        let body = document.getElementById("scoreboardBody");
+        let btnText = document.getElementById("toggleBtnText");
+        body.classList.toggle("collapsed");
+        if(body.classList.contains("collapsed")) {
+            btnText.innerText = "열기 ▼";
+        } else {
+            btnText.innerText = "접기 ▲";
+        }
+    }
+
     function addPlayer() {
+        let inputElem = document.getElementById("newPlayerInput");
+        let nameVal = inputElem ? inputElem.value.trim() : "";
+        if(!nameVal) {
+            alert("플레이어 이름을 입력해주세요.");
+            return;
+        }
+
         let newId = Date.now();
-        let newName = "플레이어 " + (players.length + 1);
-        players.push({ id: newId, name: newName });
+        players.push({ id: newId, name: nameVal });
         scores[newId] = { house:0, houseB:0, watch:0, watchB:0, castle:0, castleB:0, wood:0, woodB:0, sheep:0, sheepB:0, gold:0, goldB:0, port:false, abbey:false, jarl:false, trophy:0, longship:0 };
         render();
     }
 
     function removePlayer(id) {
-        if(players.length <= 1) {
-            alert("최소 1명의 플레이어가 필요합니다.");
-            return;
-        }
         players = players.filter(p => p.id !== id);
         delete scores[id];
         render();
     }
 
-    // 이름 입력 시 키보드 내림 방지: 전체 렌더링 대신 데이터만 갱신하고 이름표/순위판의 텍스트만 실시간 반영
     function updatePlayerName(id, val) {
         let p = players.find(x => x.id === id);
         if(p) {
             p.name = val;
             
-            // 그룹 행의 플레이어 이름 영역 업데이트
             document.querySelectorAll(`.gp-name[data-id="${id}"]`).forEach(el => {
                 el.innerText = val;
                 el.title = val;
             });
 
-            // 특수 부지/보너스 영역의 플레이어 이름 업데이트
             document.querySelectorAll(`.sp-name[data-id="${id}"]`).forEach(el => {
                 el.innerText = val;
                 el.title = val;
             });
 
-            // 순위표 실시간 갱신
             renderScoreboard();
         }
     }
 
-    // 입력 시 전체를 새로 그리지 않고 데이터만 갱신한 뒤, 해당 항목의 소계와 순위표만 업데이트
     function updateVal(pId, field, val) {
         if(scores[pId]) {
             scores[pId][field] = isNaN(val) ? 0 : val;
             
-            // 그룹 소계 업데이트
             groupMeta.forEach(g => {
                 let s = scores[pId];
                 let subTotalElem = document.getElementById(`sub-${pId}-${g.key}`);
@@ -400,7 +444,6 @@
                 }
             });
 
-            // 순위표만 실시간 갱신
             renderScoreboard();
         }
     }
@@ -439,7 +482,10 @@
                 <button class="tag-remove" onclick="removePlayer(${p.id})">×</button>
             </div>`;
         });
-        html += `<button class="add-player-tag-btn" onclick="addPlayer()">+ 추가</button>`;
+        html += `<div class="add-player-form">
+            <input type="text" id="newPlayerInput" class="add-player-input" placeholder="이름 입력" onkeydown="if(event.key==='Enter') addPlayer()">
+            <button class="add-player-btn" onclick="addPlayer()">+ 추가</button>
+        </div>`;
         document.getElementById("playerTagsContainer").innerHTML = html;
     }
 
@@ -455,29 +501,33 @@
                 </div>
                 <div class="group-rows">`;
             
-            players.forEach(p => {
-                let s = scores[p.id];
-                let bonus = s[g.key + 'B'];
-                let count = s[g.key];
-                let subTotal = (g.base + bonus) * count;
+            if(players.length === 0) {
+                html += `<div style="text-align:center; color:var(--text); opacity:0.6; font-size:0.85em; padding: 6px 0;">등록된 플레이어가 없습니다. 상단에서 플레이어를 추가해주세요.</div>`;
+            } else {
+                players.forEach(p => {
+                    let s = scores[p.id];
+                    let bonus = s[g.key + 'B'];
+                    let count = s[g.key];
+                    let subTotal = (g.base + bonus) * count;
 
-                html += `<div class="group-player-row">
-                    <span class="gp-name" data-id="${p.id}" title="${p.name}">${p.name}</span>
-                    <div class="gp-inputs">
-                        <div class="input-box-wrapper">
-                            <span>롱쉽보너스</span>
-                            <input type="number" pattern="[0-9]*" value="${bonus}" oninput="updateVal(${p.id}, '${g.key}B', +this.value)">
+                    html += `<div class="group-player-row">
+                        <span class="gp-name" data-id="${p.id}" title="${p.name}">${p.name}</span>
+                        <div class="gp-inputs">
+                            <div class="input-box-wrapper">
+                                <span>롱쉽보너스</span>
+                                <input type="number" pattern="[0-9]*" value="${bonus}" oninput="updateVal(${p.id}, '${g.key}B', +this.value)">
+                            </div>
+                            <div style="opacity:0.4;">×</div>
+                            <div class="input-box-wrapper">
+                                <span>타일개수</span>
+                                <input type="number" pattern="[0-9]*" value="${count}" oninput="updateVal(${p.id}, '${g.key}', +this.value)">
+                            </div>
+                            <div style="opacity:0.4;">=</div>
+                            <div class="gp-result" id="sub-${p.id}-${g.key}">${subTotal}점</div>
                         </div>
-                        <div style="opacity:0.4;">×</div>
-                        <div class="input-box-wrapper">
-                            <span>타일개수</span>
-                            <input type="number" pattern="[0-9]*" value="${count}" oninput="updateVal(${p.id}, '${g.key}', +this.value)">
-                        </div>
-                        <div style="opacity:0.4;">=</div>
-                        <div class="gp-result" id="sub-${p.id}-${g.key}">${subTotal}점</div>
-                    </div>
-                </div>`;
-            });
+                    </div>`;
+                });
+            }
 
             html += `</div></div>`;
         });
@@ -486,34 +536,47 @@
 
     function renderSpecial() {
         let portHtml = "";
-        players.forEach(p => {
-            let s = scores[p.id];
-            portHtml += `<div class="special-row">
-                <span class="sp-name" data-id="${p.id}" style="font-weight:bold; width:75px;" title="${p.name}">${p.name}</span>
-                <div style="display:flex; gap:6px; font-size:0.8em;">
-                    <label><input type="checkbox" ${s.port?'checked':''} onchange="updateVal(${p.id}, 'port', this.checked)"> 항구(+5)</label>
-                    <label><input type="checkbox" ${s.abbey?'checked':''} onchange="updateVal(${p.id}, 'abbey', this.checked)"> 예배소(+7)</label>
-                    <label><input type="checkbox" ${s.jarl?'checked':''} onchange="updateVal(${p.id}, 'jarl', this.checked)"> 야를(+9)</label>
-                </div>
-            </div>`;
-        });
+        if(players.length === 0) {
+            portHtml = `<div style="text-align:center; color:var(--text); opacity:0.6; font-size:0.85em; padding: 4px 0;">등록된 플레이어가 없습니다.</div>`;
+        } else {
+            players.forEach(p => {
+                let s = scores[p.id];
+                portHtml += `<div class="special-row">
+                    <span class="sp-name" data-id="${p.id}" style="font-weight:bold; width:75px;" title="${p.name}">${p.name}</span>
+                    <div style="display:flex; gap:6px; font-size:0.8em;">
+                        <label><input type="checkbox" ${s.port?'checked':''} onchange="updateVal(${p.id}, 'port', this.checked)"> 항구(+5)</label>
+                        <label><input type="checkbox" ${s.abbey?'checked':''} onchange="updateVal(${p.id}, 'abbey', this.checked)"> 예배소(+7)</label>
+                        <label><input type="checkbox" ${s.jarl?'checked':''} onchange="updateVal(${p.id}, 'jarl', this.checked)"> 야를(+9)</label>
+                    </div>
+                </div>`;
+            });
+        }
         document.getElementById("portContainer").innerHTML = portHtml;
 
         let bonusHtml = "";
-        players.forEach(p => {
-            let s = scores[p.id];
-            bonusHtml += `<div class="special-row">
-                <span class="sp-name" data-id="${p.id}" style="font-weight:bold; width:75px;" title="${p.name}">${p.name}</span>
-                <div style="display:flex; gap:8px; align-items:center;">
-                    <div class="input-box-wrapper"><span>트로피 총점</span><input type="number" pattern="[0-9]*" value="${s.trophy}" oninput="updateVal(${p.id}, 'trophy', +this.value)"></div>
-                    <div class="input-box-wrapper"><span style="color:var(--danger)">미완성롱쉽(-5)</span><input type="number" pattern="[0-9]*" value="${s.longship}" oninput="updateVal(${p.id}, 'longship', +this.value)" style="color:var(--danger)"></div>
-                </div>
-            </div>`;
-        });
+        if(players.length === 0) {
+            bonusHtml = `<div style="text-align:center; color:var(--text); opacity:0.6; font-size:0.85em; padding: 4px 0;">등록된 플레이어가 없습니다.</div>`;
+        } else {
+            players.forEach(p => {
+                let s = scores[p.id];
+                bonusHtml += `<div class="special-row">
+                    <span class="sp-name" data-id="${p.id}" style="font-weight:bold; width:75px;" title="${p.name}">${p.name}</span>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <div class="input-box-wrapper"><span>트로피 총점</span><input type="number" pattern="[0-9]*" value="${s.trophy}" oninput="updateVal(${p.id}, 'trophy', +this.value)"></div>
+                        <div class="input-box-wrapper"><span style="color:var(--danger)">미완성롱쉽(-5)</span><input type="number" pattern="[0-9]*" value="${s.longship}" oninput="updateVal(${p.id}, 'longship', +this.value)" style="color:var(--danger)"></div>
+                    </div>
+                </div>`;
+            });
+        }
         document.getElementById("bonusContainer").innerHTML = bonusHtml;
     }
 
     function renderScoreboard() {
+        if(players.length === 0) {
+            document.getElementById("scoreboardContainer").innerHTML = `<div style="text-align:center; color:var(--text); opacity:0.6; font-size:0.85em; padding: 4px 0;">플레이어를 추가하면 순위가 표시됩니다.</div>`;
+            return;
+        }
+
         let ranked = players.map(p => ({
             ...p,
             total: calculateTotal(p.id)
