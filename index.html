@@ -79,6 +79,7 @@
             font-weight: bold;
             font-size: 0.9em;
             width: 70px;
+            outline: none;
         }
         .tag-remove {
             background: var(--danger);
@@ -183,6 +184,11 @@
             font-weight: bold;
             font-size: 1em;
             -webkit-appearance: none;
+        }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
         }
         .gp-result {
             font-weight: bold;
@@ -359,15 +365,28 @@
         let p = players.find(x => x.id === id);
         if(p) {
             p.name = val;
-            // 이름 수정 시 전체 화면(그룹, 특수 부지, 순위표 등)을 갱신하여 동기화
             render();
         }
     }
 
+    // 입력 시 전체를 새로 그리지 않고 데이터만 갱신한 뒤, 해당 항목의 소계와 순위표만 업데이트
     function updateVal(pId, field, val) {
         if(scores[pId]) {
-            scores[pId][field] = val;
-            render();
+            scores[pId][field] = isNaN(val) ? 0 : val;
+            
+            // 그룹 소계 업데이트
+            groupMeta.forEach(g => {
+                let s = scores[pId];
+                let subTotalElem = document.getElementById(`sub-${pId}-${g.key}`);
+                if(subTotalElem) {
+                    let bonus = s[g.key + 'B'];
+                    let count = s[g.key];
+                    subTotalElem.innerText = ((g.base + bonus) * count) + "점";
+                }
+            });
+
+            // 순위표만 실시간 갱신
+            renderScoreboard();
         }
     }
 
@@ -432,15 +451,15 @@
                     <div class="gp-inputs">
                         <div class="input-box-wrapper">
                             <span>롱쉽보너스</span>
-                            <input type="number" pattern="[0-9]*" value="${bonus}" onchange="updateVal(${p.id}, '${g.key}B', +this.value)">
+                            <input type="number" pattern="[0-9]*" value="${bonus}" oninput="updateVal(${p.id}, '${g.key}B', +this.value)">
                         </div>
                         <div style="opacity:0.4;">×</div>
                         <div class="input-box-wrapper">
                             <span>타일개수</span>
-                            <input type="number" pattern="[0-9]*" value="${count}" onchange="updateVal(${p.id}, '${g.key}', +this.value)">
+                            <input type="number" pattern="[0-9]*" value="${count}" oninput="updateVal(${p.id}, '${g.key}', +this.value)">
                         </div>
                         <div style="opacity:0.4;">=</div>
-                        <div class="gp-result">${subTotal}점</div>
+                        <div class="gp-result" id="sub-${p.id}-${g.key}">${subTotal}점</div>
                     </div>
                 </div>`;
             });
@@ -471,8 +490,8 @@
             bonusHtml += `<div class="special-row">
                 <span style="font-weight:bold; width:75px;" title="${p.name}">${p.name}</span>
                 <div style="display:flex; gap:8px; align-items:center;">
-                    <div class="input-box-wrapper"><span>트로피 총점</span><input type="number" pattern="[0-9]*" value="${s.trophy}" onchange="updateVal(${p.id}, 'trophy', +this.value)"></div>
-                    <div class="input-box-wrapper"><span style="color:var(--danger)">미완성롱쉽(-5)</span><input type="number" pattern="[0-9]*" value="${s.longship}" onchange="updateVal(${p.id}, 'longship', +this.value)" style="color:var(--danger)"></div>
+                    <div class="input-box-wrapper"><span>트로피 총점</span><input type="number" pattern="[0-9]*" value="${s.trophy}" oninput="updateVal(${p.id}, 'trophy', +this.value)"></div>
+                    <div class="input-box-wrapper"><span style="color:var(--danger)">미완성롱쉽(-5)</span><input type="number" pattern="[0-9]*" value="${s.longship}" oninput="updateVal(${p.id}, 'longship', +this.value)" style="color:var(--danger)"></div>
                 </div>
             </div>`;
         });
