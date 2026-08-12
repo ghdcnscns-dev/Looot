@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>루우트 승점 계산기</title>
+    <title>바이킹 야들 - 그룹별 승점 계산기</title>
     <style>
         :root {
             --bg: #1c1714;
@@ -174,7 +174,7 @@
         }
         input[type="number"] {
             width: 42px;
-            height: 36px; /* 모바일 터치 영역 확대 */
+            height: 36px;
             background: var(--input-bg);
             color: var(--text);
             border: 1px solid var(--input-border);
@@ -222,8 +222,6 @@
             font-size: 0.85em;
         }
         .special-row:last-child { margin-bottom: 0; }
-
-        /* 체크박스 터치 영역 확대용 */
         .special-row label {
             display: inline-flex;
             align-items: center;
@@ -288,7 +286,7 @@
 <body>
 <div class="container">
     <div class="header-bar">
-        <h1>🛡️ 루우트 점수 계산기</h1>
+        <h1>🛡️ 바이킹 야들 점수 계산기</h1>
     </div>
 
     <!-- 플레이어 관리 패널 -->
@@ -359,8 +357,11 @@
 
     function updatePlayerName(id, val) {
         let p = players.find(x => x.id === id);
-        if(p) p.name = val;
-        renderScoreboardOnly();
+        if(p) {
+            p.name = val;
+            // 이름 수정 시 전체 화면(그룹, 특수 부지, 순위표 등)을 갱신하여 동기화
+            render();
+        }
     }
 
     function updateVal(pId, field, val) {
@@ -396,16 +397,11 @@
         renderScoreboard();
     }
 
-    function renderScoreboardOnly() {
-        renderPlayerTags();
-        renderScoreboard();
-    }
-
     function renderPlayerTags() {
         let html = "";
         players.forEach(p => {
             html += `<div class="player-tag">
-                <input type="text" value="${p.name}" onchange="updatePlayerName(${p.id}, this.value)">
+                <input type="text" value="${p.name}" oninput="updatePlayerName(${p.id}, this.value)">
                 <button class="tag-remove" onclick="removePlayer(${p.id})">×</button>
             </div>`;
         });
