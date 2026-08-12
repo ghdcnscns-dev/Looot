@@ -2,284 +2,92 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>보드게임 승점 계산기</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>바이킹 야들 점수 계산기</title>
     <style>
-        :root {
-            --bg-color: #f6f8fa;
-            --header-bg: #24292e;
-            --text-color: #24292e;
-            --gh-green: #2ea44f;
-            --gh-gray: #f3f4f6;
-            --border-color: #d1d5da;
-            --card-bg: #ffffff;
-            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: var(--font-family);
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            line-height: 1.5;
-            padding-bottom: 70px;
-        }
-
-        header {
-            background-color: var(--header-bg);
-            color: white;
-            padding: 16px 20px;
-            text-align: center;
-        }
-        header h1 { font-size: 18px; font-weight: 600; }
-
-        .container {
-            max-width: 600px;
-            margin: 20px auto;
-            padding: 0 16px;
-        }
-
-        .section-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
-        .section-header {
-            background-color: var(--gh-gray);
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 600;
-            font-size: 15px;
-        }
-        .section-content { padding: 16px; }
-
-        .form-group { margin-bottom: 14px; }
-        .form-label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 13px; color: #333; }
-        .form-help { font-size: 11px; color: #586069; margin-bottom: 4px; display: block; }
-        
-        .input-with-unit {
-            display: flex;
-            align-items: center;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            background-color: white;
-        }
-        input[type="number"] {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            outline: none;
-            font-size: 16px;
-            font-weight: 500;
-            text-align: right;
-        }
-        .unit-label {
-            padding: 0 12px;
-            color: #586069;
-            font-size: 13px;
-            border-left: 1px solid var(--border-color);
-            background-color: #fafbfc;
-            min-width: 60px;
-            text-align: center;
-        }
-
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            text-align: center;
-            border-radius: 6px;
-            cursor: pointer;
-            border: 1px solid rgba(27,31,35,0.15);
-        }
-        .btn-primary { background-color: var(--gh-green); color: white; border: none; }
-        .btn-secondary { background-color: var(--gh-gray); color: var(--text-color); }
-
-        #result-area { display: none; }
-        .score-display {
-            text-align: center;
-            padding: 20px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .total-score { font-size: 42px; font-weight: 800; color: var(--gh-green); line-height: 1; }
-        .score-label { font-size: 14px; color: #586069; margin-top: 6px; }
-        
-        .breakdown { padding: 16px; background-color: var(--gh-gray); }
-        .breakdown h3 { font-size: 14px; margin-bottom: 10px; }
-        .breakdown-item { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; }
-        .breakdown-item .item-name { color: #586069; }
-        .breakdown-item .item-score { font-weight: 600; }
-
-        .bottom-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background-color: white;
-            padding: 10px 16px;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            display: flex;
-            gap: 10px;
-            z-index: 10;
-        }
-        .bottom-bar .btn { margin: 0; }
+        :root { --primary: #4a6741; --accent: #d4af37; --bg: #fdfbf7; }
+        body { font-family: sans-serif; background: var(--bg); padding: 10px; margin: 0; }
+        .container { max-width: 600px; margin: auto; }
+        .player-card { background: white; border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .input-group { display: flex; align-items: center; justify-content: space-between; margin: 5px 0; font-size: 0.9em; }
+        input[type="number"] { width: 50px; }
+        .total-score { font-weight: bold; color: var(--primary); font-size: 1.3em; margin-top: 10px; text-align: right; }
+        button { cursor: pointer; padding: 8px 12px; background: var(--primary); color: white; border: none; border-radius: 4px; }
+        .remove-btn { background: #b22222; margin-left: 10px; }
+        h1 { text-align: center; color: var(--primary); }
     </style>
 </head>
 <body>
+<div class="container">
+    <h1>바이킹 점수 계산기</h1>
+    <div id="playerList"></div>
+    <button onclick="addPlayer()" style="width:100%; padding:15px; font-size:1.1em; margin-top:10px;">+ 플레이어 추가</button>
+</div>
 
-    <header>
-        <h1>🛡️ 바이킹 승점 계산기</h1>
-    </header>
+<script>
+    let players = [{ id: Date.now(), name: "플레이어 1", scores: { house:0, houseB:0, watch:0, watchB:0, castle:0, castleB:0, wood:0, woodB:0, sheep:0, sheepB:0, gold:0, goldB:0, port:false, abbey:false, jarl:false, trophy:0, longship:0 } }];
 
-    <div class="container">
+    function addPlayer() {
+        players.push({ id: Date.now(), name: "플레이어 " + (players.length + 1), scores: { house:0, houseB:0, watch:0, watchB:0, castle:0, castleB:0, wood:0, woodB:0, sheep:0, sheepB:0, gold:0, goldB:0, port:false, abbey:false, jarl:false, trophy:0, longship:0 } });
+        render();
+    }
 
-        <!-- 점수 입력 카드 -->
-        <div class="section-card">
-            <div class="section-header">점수 항목 입력</div>
-            <div class="section-content">
-                
-                <!-- 1. 타일 및 기본/보너스 점수 -->
-                <div class="form-group">
-                    <span class="form-help">1. 성, 망루, 집, 양, 나무 타일 점수 (기본+보너스 총합)</span>
-                    <label class="form-label" for="tile-score">건물 및 자원 타일 총 승점</label>
-                    <div class="input-with-unit">
-                        <input type="number" id="tile-score" placeholder="0" inputmode="numeric">
-                        <span class="unit-label">점</span>
-                    </div>
+    function removePlayer(id) {
+        players = players.filter(p => p.id !== id);
+        render();
+    }
+
+    function updateScore(pId, field, value) {
+        let p = players.find(p => p.id === pId);
+        p.scores[field] = value;
+        render();
+    }
+
+    function calculate(p) {
+        let s = p.scores;
+        let total = 0;
+        total += (1 + s.houseB) * s.house;
+        total += (2 + s.watchB) * s.watch;
+        total += (4 + s.castleB) * s.castle;
+        total += (1 + s.woodB) * s.wood;
+        total += (1 + s.sheepB) * s.sheep;
+        total += (2 + s.goldB) * s.gold;
+        total += s.port ? 5 : 0;
+        total += s.abbey ? 7 : 0;
+        total += s.jarl ? 9 : 0;
+        total += s.trophy;
+        total -= (s.longship * 5);
+        return total;
+    }
+
+    function render() {
+        players.sort((a,b) => calculate(b) - calculate(a));
+        let html = "";
+        players.forEach(p => {
+            html += `<div class="player-card">
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <input type="text" value="${p.name}" style="font-weight:bold; width:70%;" onchange="p.name=this.value">
+                    <button class="remove-btn" onclick="removePlayer(${p.id})">삭제</button>
                 </div>
-
-                <!-- 2. 완성된 건축 부지 점수 -->
-                <div class="form-group">
-                    <span class="form-help">2. 항구, 예배소, 야들의 성 등 완성 부지 점수</span>
-                    <label class="form-label" for="building-score">완성된 건축 부지 총점</label>
-                    <div class="input-with-unit">
-                        <input type="number" id="building-score" placeholder="0" inputmode="numeric">
-                        <span class="unit-label">점</span>
-                    </div>
+                <div class="input-group">집(기본1+보너스): <input type="number" value="${p.scores.house}" onchange="updateScore(${p.id},'house',+this.value)"> <input type="number" value="${p.scores.houseB}" onchange="updateScore(${p.id},'houseB',+this.value)"></div>
+                <div class="input-group">망루(기본2+보너스): <input type="number" value="${p.scores.watch}" onchange="updateScore(${p.id},'watch',+this.value)"> <input type="number" value="${p.scores.watchB}" onchange="updateScore(${p.id},'watchB',+this.value)"></div>
+                <div class="input-group">성(기본4+보너스): <input type="number" value="${p.scores.castle}" onchange="updateScore(${p.id},'castle',+this.value)"> <input type="number" value="${p.scores.castleB}" onchange="updateScore(${p.id},'castleB',+this.value)"></div>
+                <div class="input-group">나무(기본1+보너스): <input type="number" value="${p.scores.wood}" onchange="updateScore(${p.id},'wood',+this.value)"> <input type="number" value="${p.scores.woodB}" onchange="updateScore(${p.id},'woodB',+this.value)"></div>
+                <div class="input-group">양(기본1+보너스): <input type="number" value="${p.scores.sheep}" onchange="updateScore(${p.id},'sheep',+this.value)"> <input type="number" value="${p.scores.sheepB}" onchange="updateScore(${p.id},'sheepB',+this.value)"></div>
+                <div class="input-group">금(기본2+보너스): <input type="number" value="${p.scores.gold}" onchange="updateScore(${p.id},'gold',+this.value)"> <input type="number" value="${p.scores.goldB}" onchange="updateScore(${p.id},'goldB',+this.value)"></div>
+                <div class="input-group">완성부지(항구/예배소/야를): 
+                    <input type="checkbox" ${p.scores.port?'checked':''} onchange="updateScore(${p.id},'port',this.checked)">
+                    <input type="checkbox" ${p.scores.abbey?'checked':''} onchange="updateScore(${p.id},'abbey',this.checked)">
+                    <input type="checkbox" ${p.scores.jarl?'checked':''} onchange="updateScore(${p.id},'jarl',this.checked)">
                 </div>
-
-                <!-- 3. 트로피 타일 점수 -->
-                <div class="form-group">
-                    <span class="form-help">3. 피오르 판에 가져온 트로피 타일 승점 & 최고 트로피 점수</span>
-                    <div style="display: flex; gap: 8px;">
-                        <div style="flex: 2;">
-                            <label class="form-label" for="trophy-score">트로피 총 승점</label>
-                            <div class="input-with-unit">
-                                <input type="number" id="trophy-score" placeholder="0" inputmode="numeric">
-                                <span class="unit-label">점</span>
-                            </div>
-                        </div>
-                        <div style="flex: 1;">
-                            <label class="form-label" for="max-trophy">최고 트로피값</label>
-                            <div class="input-with-unit">
-                                <input type="number" id="max-trophy" placeholder="0" inputmode="numeric">
-                                <span class="unit-label">숫자</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 4. 채우지 못한 롱쉽 타일 감점 -->
-                <div class="form-group">
-                    <span class="form-help">4. 채우지 못한 롱쉽 타일 1개당 5점 감점</span>
-                    <label class="form-label" for="longship-fail">못 채운 롱쉽 개수</label>
-                    <div class="input-with-unit">
-                        <input type="number" id="longship-fail" placeholder="0" inputmode="numeric">
-                        <span class="unit-label">개 (-5)</span>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- 결과 표시 영역 -->
-        <div class="section-card" id="result-area">
-            <div class="section-header">최종 승점 결과</div>
-            <div class="section-content" style="padding: 0;">
-                <div class="score-display">
-                    <div class="total-score" id="total-score">0</div>
-                    <div class="score-label">최종 합산 승점</div>
-                </div>
-                <div class="breakdown">
-                    <h3>📊 항목별 세부 내역</h3>
-                    <div class="breakdown-item">
-                        <span class="item-name">건물 및 자원 타일</span>
-                        <span class="item-score" id="b-tile">0점</span>
-                    </div>
-                    <div class="breakdown-item">
-                        <span class="item-name">완성된 건축 부지</span>
-                        <span class="item-score" id="b-building">0점</span>
-                    </div>
-                    <div class="breakdown-item">
-                        <span class="item-name">트로피 타일 승점</span>
-                        <span class="item-score" id="b-trophy">0점</span>
-                    </div>
-                    <div class="breakdown-item">
-                        <span class="item-name">미채움 롱쉽 감점</span>
-                        <span class="item-score" id="b-penalty" style="color: #d73a49;">0점</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- 하단 고정 액션 바 -->
-    <div class="bottom-bar">
-        <button class="btn btn-secondary" id="reset-btn">초기화</button>
-        <button class="btn btn-primary" id="calc-btn">승점 계산하기</button>
-    </div>
-
-    <script>
-        const calcBtn = document.getElementById('calc-btn');
-        const resetBtn = document.getElementById('reset-btn');
-        const resultArea = document.getElementById('result-area');
-
-        const tileInput = document.getElementById('tile-score');
-        const buildingInput = document.getElementById('building-score');
-        const trophyInput = document.getElementById('trophy-score');
-        const maxTrophyInput = document.getElementById('max-trophy');
-        const longshipInput = document.getElementById('longship-fail');
-
-        const totalScoreEl = document.getElementById('total-score');
-        const bTile = document.getElementById('b-tile');
-        const bBuilding = document.getElementById('b-building');
-        const bTrophy = document.getElementById('b-trophy');
-        const bPenalty = document.getElementById('b-penalty');
-
-        calcBtn.addEventListener('click', () => {
-            const tileScore = parseInt(tileInput.value) || 0;
-            const buildingScore = parseInt(buildingInput.value) || 0;
-            const trophyScore = parseInt(trophyInput.value) || 0;
-            const longshipFailCount = parseInt(longshipInput.value) || 0;
-
-            const penaltyScore = longshipFailCount * 5;
-            const finalScore = tileScore + buildingScore + trophyScore - penaltyScore;
-
-            totalScoreEl.textContent = finalScore;
-
-            bTile.textContent = `${tileScore}점`;
-            bBuilding.textContent = `${buildingScore}점`;
-            bTrophy.textContent = `${trophyScore}점`;
-            bPenalty.textContent = `-${penaltyScore}점 (${longshipFailCount개})`;
-
-            resultArea.style.display = 'block';
-            resultArea.scrollIntoView({ behavior: 'smooth' });
+                <div class="input-group">트로피 점수: <input type="number" value="${p.scores.trophy}" onchange="updateScore(${p.id},'trophy',+this.value)"></div>
+                <div class="input-group">미완성 롱쉽(-5점): <input type="number" value="${p.scores.longship}" onchange="updateScore(${p.id},'longship',+this.value)"></div>
+                <div class="total-score">총점: ${calculate(p)}</div>
+            </div>`;
         });
-
-        resetBtn.addEventListener('click', () => {
-            tileInput.value = '';
-            buildingInput.value = '';
-            trophyInput.value = '';
-            maxTrophyInput.value = '';
-            longshipInput.value = '';
-            resultArea.style.display = 'none';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-    </script>
+        document.getElementById("playerList").innerHTML = html;
+    }
+    render();
+</script>
 </body>
 </html>
