@@ -1,0 +1,161 @@
+<div class="score-bar-container" id="score-bar">
+                    <!-- 기여도 바가 자바스크립트로 동적 생성됩니다 -->
+                </div>
+            </div>
+            <div class="breakdown">
+                <h3>📊 기여도 내역 분석</h3>
+                <div class="breakdown-item">
+                    <span class="activity-name">Commits</span>
+                    <span class="activity-score" id="breakdown-commit">0점</span>
+                </div>
+                <div class="breakdown-item">
+                    <span class="activity-name">Pull Requests</span>
+                    <span class="activity-score" id="breakdown-pr">0점</span>
+                </div>
+                <div class="breakdown-item">
+                    <span class="activity-name">Issues</span>
+                    <span class="activity-score" id="breakdown-issue">0점</span>
+                </div>
+                <div class="breakdown-item">
+                    <span class="activity-name">Code Reviews</span>
+                    <span class="activity-score" id="breakdown-review">0점</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 하단 고정 액션 바 -->
+    <div class="bottom-bar">
+        <button class="btn btn-secondary" id="reset-btn">초기화</button>
+        <button class="btn btn-primary" id="calc-btn">점수 계산하기</button>
+    </div>
+
+    <script>
+        // DOM 요소
+        const calcBtn = document.getElementById('calc-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const toggleCustomBtn = document.getElementById('toggle-custom-btn');
+        const customSettings = document.getElementById('custom-settings');
+        const resetWeightsBtn = document.getElementById('reset-weights-btn');
+        const resultArea = document.getElementById('result-area');
+
+        // 입력 필드
+        const commitsInput = document.getElementById('commits');
+        const prsInput = document.getElementById('prs');
+        const issuesInput = document.getElementById('issues');
+        const reviewsInput = document.getElementById('reviews');
+
+        // 가중치 필드
+        const wCommit = document.getElementById('weight-commit');
+        const wPr = document.getElementById('weight-pr');
+        const wIssue = document.getElementById('weight-issue');
+        const wReview = document.getElementById('weight-review');
+
+        // 결과 필드
+        const totalScoreEl = document.getElementById('total-score');
+        const levelBadgeEl = document.getElementById('level-badge');
+        const scoreBarEl = document.getElementById('score-bar');
+        
+        const bCommit = document.getElementById('breakdown-commit');
+        const bPr = document.getElementById('breakdown-pr');
+        const bIssue = document.getElementById('breakdown-issue');
+        const bReview = document.getElementById('breakdown-review');
+
+        // 고급 설정 토글
+        toggleCustomBtn.addEventListener('click', () => {
+            if (customSettings.style.display === 'block') {
+                customSettings.style.display = 'none';
+                toggleCustomBtn.textContent = '⚡ 커스텀 가중치 설정하기 (고급)';
+            } else {
+                customSettings.style.display = 'block';
+                toggleCustomBtn.textContent = '⚡ 커스텀 가중치 숨기기';
+            }
+        });
+
+        // 가중치 초기화
+        resetWeightsBtn.addEventListener('click', () => {
+            wCommit.value = 1;
+            wPr.value = 5;
+            wIssue.value = 10;
+            wReview.value = 3;
+        });
+
+        // 점수 계산 로직 (기존 점수 계산 방식 유지)
+        calcBtn.addEventListener('click', () => {
+            const commits = parseInt(commitsInput.value) || 0;
+            const prs = parseInt(prsInput.value) || 0;
+            const issues = parseInt(issuesInput.value) || 0;
+            const reviews = parseInt(reviewsInput.value) || 0;
+
+            const weightC = parseInt(wCommit.value) || 1;
+            const weightP = parseInt(wPr.value) || 5;
+            const weightI = parseInt(wIssue.value) || 10;
+            const weightR = parseInt(wReview.value) || 3;
+
+            const scoreC = commits * weightC;
+            const scoreP = prs * weightP;
+            const scoreI = issues * weightI;
+            const scoreR = reviews * weightR;
+
+            const totalScore = scoreC + scoreP + scoreI + scoreR;
+
+            // 결과 반영
+            totalScoreEl.textContent = totalScore;
+
+            bCommit.textContent = `${scoreC}점 (${commits}개)`;
+            bPr.textContent = `${scoreP}점 (${prs}개)`;
+            bIssue.textContent = `${scoreI}점 (${issues}개)`;
+            bReview.textContent = `${scoreR}점 (${reviews}개)`;
+
+            // 레벨 시스템 부여
+            let levelInfo = { name: '🌱 Seed (초보 기여자)', color: '#6a737d' };
+            if (totalScore >= 100) {
+                levelInfo = { name: '💎 Master (마스터)', color: '#6f42c1' };
+            } else if (totalScore >= 50) {
+                levelInfo = { name: '🔥 Senior (시니어)', color: '#d73a49' };
+            } else if (totalScore >= 20) {
+                levelInfo = { name: '⭐ Contributor (기여자)', color: '#2ea44f' };
+            }
+
+            levelBadgeEl.textContent = levelInfo.name;
+            levelBadgeEl.style.backgroundColor = levelInfo.color;
+
+            // 기여도 바 비율 생성
+            scoreBarEl.innerHTML = '';
+            if (totalScore > 0) {
+                const createSegment = (score, color) => {
+                    if (score <= 0) return;
+                    const pct = (score / totalScore) * 100;
+                    const seg = document.createElement('div');
+                    seg.className = 'score-segment';
+                    seg.style.width = `${pct}%`;
+                    seg.style.backgroundColor = color;
+                    scoreBarEl.appendChild(seg);
+                };
+
+                createSegment(scoreC, '#2ea44f'); // 커밋: 초록
+                createSegment(scoreP, '#0366d6'); // PR: 파랑
+                createSegment(scoreI, '#f66a0a'); // 이슈: 주황
+                createSegment(scoreR, '#6f42c1'); // 리뷰: 보라
+            } else {
+                scoreBarEl.innerHTML = '<div class="score-segment" style="width: 100%; background-color: #eaecef;"></div>';
+            }
+
+            // 결과 영역 노출 및 스크롤 이동
+            resultArea.style.display = 'block';
+            resultArea.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // 전체 초기화
+        resetBtn.addEventListener('click', () => {
+            commitsInput.value = '';
+            prsInput.value = '';
+            issuesInput.value = '';
+            reviewsInput.value = '';
+            resultArea.style.display = 'none';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>
