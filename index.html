@@ -361,11 +361,26 @@
         render();
     }
 
+    // 이름 입력 시 키보드 내림 방지: 전체 렌더링 대신 데이터만 갱신하고 이름표/순위판의 텍스트만 실시간 반영
     function updatePlayerName(id, val) {
         let p = players.find(x => x.id === id);
         if(p) {
             p.name = val;
-            render();
+            
+            // 그룹 행의 플레이어 이름 영역 업데이트
+            document.querySelectorAll(`.gp-name[data-id="${id}"]`).forEach(el => {
+                el.innerText = val;
+                el.title = val;
+            });
+
+            // 특수 부지/보너스 영역의 플레이어 이름 업데이트
+            document.querySelectorAll(`.sp-name[data-id="${id}"]`).forEach(el => {
+                el.innerText = val;
+                el.title = val;
+            });
+
+            // 순위표 실시간 갱신
+            renderScoreboard();
         }
     }
 
@@ -447,7 +462,7 @@
                 let subTotal = (g.base + bonus) * count;
 
                 html += `<div class="group-player-row">
-                    <span class="gp-name" title="${p.name}">${p.name}</span>
+                    <span class="gp-name" data-id="${p.id}" title="${p.name}">${p.name}</span>
                     <div class="gp-inputs">
                         <div class="input-box-wrapper">
                             <span>롱쉽보너스</span>
@@ -474,7 +489,7 @@
         players.forEach(p => {
             let s = scores[p.id];
             portHtml += `<div class="special-row">
-                <span style="font-weight:bold; width:75px;" title="${p.name}">${p.name}</span>
+                <span class="sp-name" data-id="${p.id}" style="font-weight:bold; width:75px;" title="${p.name}">${p.name}</span>
                 <div style="display:flex; gap:6px; font-size:0.8em;">
                     <label><input type="checkbox" ${s.port?'checked':''} onchange="updateVal(${p.id}, 'port', this.checked)"> 항구(+5)</label>
                     <label><input type="checkbox" ${s.abbey?'checked':''} onchange="updateVal(${p.id}, 'abbey', this.checked)"> 예배소(+7)</label>
@@ -488,7 +503,7 @@
         players.forEach(p => {
             let s = scores[p.id];
             bonusHtml += `<div class="special-row">
-                <span style="font-weight:bold; width:75px;" title="${p.name}">${p.name}</span>
+                <span class="sp-name" data-id="${p.id}" style="font-weight:bold; width:75px;" title="${p.name}">${p.name}</span>
                 <div style="display:flex; gap:8px; align-items:center;">
                     <div class="input-box-wrapper"><span>트로피 총점</span><input type="number" pattern="[0-9]*" value="${s.trophy}" oninput="updateVal(${p.id}, 'trophy', +this.value)"></div>
                     <div class="input-box-wrapper"><span style="color:var(--danger)">미완성롱쉽(-5)</span><input type="number" pattern="[0-9]*" value="${s.longship}" oninput="updateVal(${p.id}, 'longship', +this.value)" style="color:var(--danger)"></div>
